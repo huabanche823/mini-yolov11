@@ -37,7 +37,7 @@ __all__ = (
     "C2fPSA",
     "C3Ghost",
     "C3k2",
-    "C3k2_LSKA",
+    "C3k2_PKI",
     "C3x",
     "CBFuse",
     "CBLinear",
@@ -1107,24 +1107,28 @@ class C3k2(C2f):
         )
 
 
-class LSKA(nn.Module):
-    """Large Separable Kernel Attention for spatial context modeling."""
+class PKIBlock(nn.Module):
+    """Lightweight Poly Kernel Inception block for multi-scale defect features."""
 
-    def __init__(self, c: int):
-        """Initialize LSKA with depth-wise large-kernel attention."""
+    def __init__(self, c: int, e: float = 0.5):
+        """Initialize multi-kernel depth-wise branches."""
         super().__init__()
-        self.dw5 = nn.Conv2d(c, c, 5, 1, 2, groups=c)
-        self.dw7 = nn.Conv2d(c, c, 7, 1, 9, groups=c, dilation=3)
-        self.pw = nn.Conv2d(c, c, 1)
+        c_ = max(int(c * e), 16)
+        self.cv1 = Conv(c, c_, 1, 1)
+        self.dw3 = DWConv(c_, c_, 3, 1)
+        self.dw5 = DWConv(c_, c_, 5, 1)
+        self.dw7 = DWConv(c_, c_, 7, 1)
+        self.cv2 = Conv(c_ * 3, c, 1, 1)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Apply large-kernel spatial attention."""
-        attn = self.pw(self.dw7(self.dw5(x)))
-        return x * attn
+        """Fuse 3x3, 5x5, and 7x7 depth-wise context with a residual path."""
+        y = self.cv1(x)
+        y = torch.cat((self.dw3(y), self.dw5(y), self.dw7(y)), 1)
+        return x + self.cv2(y)
 
 
-class C3k2_LSKA(C3k2):
-    """C3k2 block enhanced with LSKA attention."""
+class C3k2_PKI(C3k2):
+    """C3k2 block enhanced with Poly Kernel Inception."""
 
     def __init__(
         self,
@@ -1137,13 +1141,13 @@ class C3k2_LSKA(C3k2):
         g: int = 1,
         shortcut: bool = True,
     ):
-        """Initialize C3k2_LSKA with the same arguments as C3k2."""
+        """Initialize C3k2_PKI with the same arguments as C3k2."""
         super().__init__(c1, c2, n, c3k, e, attn, g, shortcut)
-        self.lska = LSKA(c2)
+        self.pki = PKIBlock(c2)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Forward pass through C3k2 followed by LSKA attention."""
-        return self.lska(super().forward(x))
+        """Forward pass through C3k2 followed by PKI feature fusion."""
+        return self.pki(super().forward(x))
 
 
 class C3k(C3):

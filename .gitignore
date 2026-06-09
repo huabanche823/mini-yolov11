@@ -13,7 +13,7 @@ dataset/
 *.sh
 *.pt
 /ultralytics/
-
+dataset.zip
 
 # C extensions
 *.so

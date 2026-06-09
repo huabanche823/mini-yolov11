@@ -6,16 +6,16 @@ sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Train a YOLOv11n-LSKA model for package detection.")
+    parser = argparse.ArgumentParser(description="Train a YOLOv11n-PKI model for package detection.")
     parser.add_argument("--data", default="dataset/data.yaml", help="Dataset yaml path.")
-    parser.add_argument("--model", default="ultralytics/cfg/models/11/yolo11n-lska.yaml", help="Model weights or yaml path.")
+    parser.add_argument("--model", default="ultralytics/cfg/models/11/yolo11n-pki.yaml", help="Model weights or yaml path.")
     parser.add_argument("--epochs", type=int, default=100, help="Training epochs.")
     parser.add_argument("--imgsz", type=int, default=640, help="Input image size.")
     parser.add_argument("--batch", type=int, default=16, help="Batch size.")
     parser.add_argument("--device", default="0", help="CUDA device id or cpu.")
     parser.add_argument("--workers", type=int, default=8, help="Dataloader workers.")
-    parser.add_argument("--project", default="runs/lska", help="Output project directory.")
-    parser.add_argument("--name", default="yolo11n_lska_dataset", help="Experiment name.")
+    parser.add_argument("--project", default="runs/pki", help="Output project directory.")
+    parser.add_argument("--name", default="yolo11n_pki_dataset", help="Experiment name.")
     parser.add_argument("--pretrained", default=True, help="Pretrained weights path or true/false.")
     return parser.parse_args()
 

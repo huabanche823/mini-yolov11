@@ -9,7 +9,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Print YOLO model structure from a YAML config.")
     parser.add_argument(
         "--model",
-        default="ultralytics/cfg/models/11/yolo11n.yaml",
+        default="ultralytics/cfg/models/11/yolo11n-pki.yaml",
         help="Model YAML path.",
     )
     parser.add_argument("--imgsz", type=int, default=640, help="Image size used for GFLOPs calculation.")
@@ -62,3 +62,10 @@ def main():
 
 if __name__ == "__main__":
     main()
+"""
+YOLO11n summary: 182 layers, 2,590,425 parameters, 2,590,409 gradients, 6.4 GFLOPs
+YOLO11n-pki summary: 192 layers, 2,629,273 parameters, 2,629,257 gradients, 6.6 GFLOPs
+
+
+
+"""
