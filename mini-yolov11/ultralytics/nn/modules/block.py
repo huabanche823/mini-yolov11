@@ -37,6 +37,7 @@ __all__ = (
     "C2fPSA",
     "C3Ghost",
     "C3k2",
+    "C3k2_LSKA",
     "C3x",
     "CBFuse",
     "CBLinear",
@@ -1104,6 +1105,45 @@ class C3k2(C2f):
             else Bottleneck(self.c, self.c, shortcut, g)
             for _ in range(n)
         )
+
+
+class LSKA(nn.Module):
+    """Large Separable Kernel Attention for spatial context modeling."""
+
+    def __init__(self, c: int):
+        """Initialize LSKA with depth-wise large-kernel attention."""
+        super().__init__()
+        self.dw5 = nn.Conv2d(c, c, 5, 1, 2, groups=c)
+        self.dw7 = nn.Conv2d(c, c, 7, 1, 9, groups=c, dilation=3)
+        self.pw = nn.Conv2d(c, c, 1)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply large-kernel spatial attention."""
+        attn = self.pw(self.dw7(self.dw5(x)))
+        return x * attn
+
+
+class C3k2_LSKA(C3k2):
+    """C3k2 block enhanced with LSKA attention."""
+
+    def __init__(
+        self,
+        c1: int,
+        c2: int,
+        n: int = 1,
+        c3k: bool = False,
+        e: float = 0.5,
+        attn: bool = False,
+        g: int = 1,
+        shortcut: bool = True,
+    ):
+        """Initialize C3k2_LSKA with the same arguments as C3k2."""
+        super().__init__(c1, c2, n, c3k, e, attn, g, shortcut)
+        self.lska = LSKA(c2)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass through C3k2 followed by LSKA attention."""
+        return self.lska(super().forward(x))
 
 
 class C3k(C3):
